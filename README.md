@@ -1,5 +1,4 @@
 HelloWorld for App Engine Standard (Java 8)
-============================
 
 This sample demonstrates how to deploy an application on Google App Engine.
 
@@ -68,3 +67,6 @@ to (`src/main/test/...`).  The following resources are quite useful:
 * [Junit4](http://junit.org/junit4/)
 * [Mockito](http://mockito.org/)
 * [Truth](http://google.github.io/truth/)
+
+# GoogleCloudApp-JavaEE
+
