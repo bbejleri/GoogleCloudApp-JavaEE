@@ -17,6 +17,10 @@
 package com.example.appengine.java8;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -30,9 +34,54 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HelloAppEngine extends HttpServlet {
 
-  @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException { 
+	private static final long serialVersionUID = 1L;
+
+@Override
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	
+	
+	  DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+      
+	 
+      //Election time
+	  String startDate = request.getParameter("startdate");
+	  Date sdate = null;
+	try {
+		sdate = dateFormat.parse(startDate);
+	} catch (ParseException e2) {
+		// TODO Auto-generated catch block
+		e2.printStackTrace();
+	}
+	
+	  String endDate = request.getParameter("enddate");
+	  Date edate = null;
+	  try {
+		 edate = dateFormat.parse(endDate);
+	} catch (ParseException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	
 	  
+	  Date actualdate = new Date();
+	 
+	 //Check if dates are the same
+     if(actualdate.compareTo(sdate) == 0) {
+     
+     String button = request.getParameter("button");
+   	  
+   	  
+   	  if (button.equals("Add Candidate")) {
+   		  addCandidate();
+   	  }
+   	  
+   	  if(button.contentEquals("Import Email")) {
+   		  importEmail();
+   	  }
+     
+     }
+	  	  
+	  //just for testing
 	  RequestDispatcher rs = request.getRequestDispatcher("/results.jsp");
 			  try {
 				rs.forward(request, response);
@@ -43,6 +92,17 @@ public class HelloAppEngine extends HttpServlet {
 	      
   }
 
+      public void addCandidate() {
+    	  //Code to add a Candidate
+      }
+      
+      public void importEmail() {
+    	  //Code to import an Email
+      }
+      
+  
+      
+      
       public static String getInfo() {
     	    return "Version: " + System.getProperty("java.version")
     	          + " OS: " + System.getProperty("os.name")
