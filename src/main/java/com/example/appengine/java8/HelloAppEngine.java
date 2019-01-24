@@ -16,9 +16,7 @@
 
 package com.example.appengine.java8;
 
-// [START example]
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -26,8 +24,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// With @WebServlet annotation the webapp/WEB-INF/web.xml is no longer required.
-
+//Cron service to start and end the elections
 @WebServlet(name = "HelloAppEngine", urlPatterns = "/operation")
 
 
@@ -35,9 +32,7 @@ public class HelloAppEngine extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException { 
-	  response.setContentType("text/html");
-	    PrintWriter out = response.getWriter();
-	    out.println("Attempting to Log In...");
+	  
 	  RequestDispatcher rs = request.getRequestDispatcher("/results.jsp");
 			  try {
 				rs.forward(request, response);

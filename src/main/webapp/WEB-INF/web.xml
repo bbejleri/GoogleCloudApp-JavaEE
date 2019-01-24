@@ -4,11 +4,21 @@
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
+ 
+  <!-- Initial Servlet -->
+  
   <servlet>
     <display-name>helloworld</display-name>
     <servlet-name>HelloAppEngine</servlet-name>
     <jsp-file>/backend.jsp</jsp-file>
   </servlet>
+  <servlet-mapping>
+        <servlet-name>HelloAppEngine</servlet-name>
+        <url-pattern>/operation</url-pattern>
+    </servlet-mapping>
+    
+    
+   <!-- Security -->
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>Auth</web-resource-name>
