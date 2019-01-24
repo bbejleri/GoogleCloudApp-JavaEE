@@ -42,21 +42,8 @@ body {
  <p><b>If you are a User, you are eligible to only view the pages below:</b></p>
     <a href="/voting.jsp"><input type="button" value="Go to voting page"></a><br>
     <a href="/results.jsp"><input type="button" value="Go to results page"></a>
-     
-  <title>Hello App Engine Standard Java 8</title>
-</head>
-<body>
-    <h1>Hello App Engine -- Java 8!</h1>
+    
 
-  <p>This is <%= HelloAppEngine.getInfo() %>.</p>
-  <table>
-    <tr>
-      <td colspan="2" style="font-weight:bold;">Available Servlets:</td>
-    </tr>
-    <tr>
-      <td><a href='/hello'>Hello App Engine</a></td>
-    </tr>
-  </table>
 
 </body>
 </html>
