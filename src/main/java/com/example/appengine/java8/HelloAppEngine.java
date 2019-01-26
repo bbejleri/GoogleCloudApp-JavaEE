@@ -21,12 +21,18 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
+import java.util.logging.Logger;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Transaction;
+
 
 //Cron service to start and end the elections
 @WebServlet(name = "HelloAppEngine", urlPatterns = "/operation")
@@ -35,6 +41,9 @@ import javax.servlet.http.HttpServletResponse;
 public class HelloAppEngine extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final Logger LOGGER = Logger.getLogger(HelloAppEngine.class.getName());
+
 
 @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -63,16 +72,19 @@ public class HelloAppEngine extends HttpServlet {
 	}
 	
 	  
-	  Date actualdate = new Date();
+	 Date actualdate = new Date();
 	 
-	 //Check if dates are the same
+	 //if dates are the same
      if(actualdate.compareTo(sdate) == 0) {
      
      String button = request.getParameter("button");
    	  
    	  
    	  if (button.equals("Add Candidate")) {
-   		  addCandidate();
+   		  String fname = request.getParameter("firstname");
+   		  String lname = request.getParameter("lastname");
+   		  String faculty = request.getParameter("faculty");
+   		  addCandidate(fname, lname, faculty);
    	  }
    	  
    	  if(button.contentEquals("Import Email")) {
@@ -80,22 +92,32 @@ public class HelloAppEngine extends HttpServlet {
    	  }
      
      }
-	  	  
-	  //just for testing
-	  RequestDispatcher rs = request.getRequestDispatcher("/results.jsp");
-			  try {
-				rs.forward(request, response);
-			} catch (ServletException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	      
+     
+     else {
+    	 LOGGER.info("This service only works between the selected interval of elections, i.e " + startDate + "-" + endDate);
+     }
+	  	        
   }
 
-      public void addCandidate() {
-    	  //Code to add a Candidate
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+   Transaction txn = datastore.beginTransaction();
+   
+      public void addCandidate(String firstname, String lastname, String faculty) {
+    	  try {
+    	 Entity candidate = new Entity("Candidate");
+    	 candidate.setProperty("firstname", firstname);
+    	 candidate.setProperty("lastname", lastname);
+    	 candidate.setProperty("faculty", faculty);
+    	 datastore.put(txn, candidate);
+         txn.commit();
+         LOGGER.info("Uploaded Successfully!");
       }
-      
+      finally {if (txn.isActive()) {
+    	    txn.rollback();
+    	    LOGGER.warning("An error occured while uploading candidate.");
+      } 
+    }
+  }
       public void importEmail() {
     	  //Code to import an Email
       }
