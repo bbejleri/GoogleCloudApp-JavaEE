@@ -18,6 +18,7 @@ package com.example.appengine.java8;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,11 +30,14 @@ import java.util.logging.Logger;
 
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -55,13 +59,10 @@ public class HelloAppEngine extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	private static final Logger LOGGER = Logger.getLogger(HelloAppEngine.class.getName());
-	
-	
-
-
 
     private List<String> emails = new ArrayList<String>();
     
+  
 @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 	
@@ -96,6 +97,7 @@ public class HelloAppEngine extends HttpServlet {
 	 Date actualdate = new Date();
 	 
 	 //checks if actual date is between the given interval
+	 //if yes, executes the buttons
      if(sdate.compareTo(actualdate) * actualdate.compareTo(edate) > 0) {
      
      String button = request.getParameter("button");
@@ -105,13 +107,25 @@ public class HelloAppEngine extends HttpServlet {
    		  String fname = request.getParameter("firstname");
    		  String lname = request.getParameter("lastname");
    		  String faculty = request.getParameter("faculty");
-   		  addCandidate(fname, lname, faculty);
+   		  
+   		  if(fname != null && lname != null && faculty != null) {
+   			addCandidate(fname, lname, faculty);
+   		  }
+   		  else {
+   			  LOGGER.info("Missing information. Please fill all text fields.");
+   		  }
+   		  
    	  }
    	  
    	  if(button.contentEquals("Import Email")) {
    		  
    	      String email = request.getParameter("emails");
+   	      if(email != null) {
    		  importEmail(email);
+   	      }
+   	      else {
+   	    	  LOGGER.info("Missing information. Add an email to import!");
+   	      }
    	  }
    	  
    	  if (button.contentEquals("Send Emails")) {
@@ -150,6 +164,7 @@ public class HelloAppEngine extends HttpServlet {
       } 
     }
   }
+      
       //Each email will be stored in a list
       public void importEmail(String email) {
     	  emails.add(email);
@@ -158,21 +173,41 @@ public class HelloAppEngine extends HttpServlet {
       
       
       public void sendEmail() {
-    	  
     	  Properties props = new Properties();
     	  Session session = Session.getDefaultInstance(props, null);
-
-
+    	  
+    	  String msgIntro = "This email is to inform you for the upcoming online student elections.";
     	  
     	  for (int i=0; i<emails.size(); i++) {
     		  try {
+    			  
+    			  //Generate a token
+    			
+    			  SecureRandom random = new SecureRandom();
+    			  byte bytes[] = new byte[20];
+    			  random.nextBytes(bytes);
+    			  String token = bytes.toString();
+    			  
+    			  //Send email
     			  MimeMessage msg = new MimeMessage(session);
-    			  msg.setFrom(new InternetAddress("admin@example.com", "Example.com Admin"));
+    			  msg.setFrom(new InternetAddress("bejleribora@gmail.com", "Admin"));
     			  msg.addRecipient(RecipientType.TO,
-    			                   new InternetAddress(emails.get(i), "Mr/Ms. User"));
+    			                   new InternetAddress(emails.get(i), "Dear Student"));
     			  msg.setSubject("University Elections");
-    			  msg.setText("This is a test");
-    			  Transport.send(msg);
+    			  msg.setText(msgIntro);
+    			  
+    			  // multipart email
+    		      String htmlBody = String.format("<html><body><p>The link for to the voting interface is:<a href='https://bora-69435.appspot.com/voting.jsp'>Go to Voting page</a></p>"
+    		      		+ "<p>To authenticate please add the token below./nPlease note that the token will expire once you have voted.</p>"
+    		      		+ "<p>Your Token: %s </p></body></html>", token); //body part of the email
+    		      Multipart mp = new MimeMultipart();
+                  MimeBodyPart htmlPart = new MimeBodyPart();
+    		      htmlPart.setContent(htmlBody, "text/html");
+    		      mp.addBodyPart(htmlPart);
+                  msg.setContent(mp);
+    		     
+    		      Transport.send(msg);
+    			  
     	  }catch (AddressException e) {
     	        e.printStackTrace();
     	    } catch (MessagingException e) {
@@ -184,6 +219,8 @@ public class HelloAppEngine extends HttpServlet {
       }
       
   
+      
+      
       
       
       
