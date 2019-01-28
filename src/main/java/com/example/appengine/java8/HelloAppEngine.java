@@ -17,12 +17,23 @@
 package com.example.appengine.java8;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +43,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.mail.MailService.Message;
 
 
 //Cron service to start and end the elections
@@ -43,8 +55,13 @@ public class HelloAppEngine extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	private static final Logger LOGGER = Logger.getLogger(HelloAppEngine.class.getName());
+	
+	
 
 
+
+    private List<String> emails = new ArrayList<String>();
+    
 @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 	
@@ -52,30 +69,34 @@ public class HelloAppEngine extends HttpServlet {
 	  DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
       
 	 
-      //Election time
+      //Getting start date from user input
 	  String startDate = request.getParameter("startdate");
 	  Date sdate = null;
+	  if (startDate != null) {
 	try {
 		sdate = dateFormat.parse(startDate);
 	} catch (ParseException e2) {
 		// TODO Auto-generated catch block
 		e2.printStackTrace();
 	}
+	}
 	
+	 //Getting end date from user input
 	  String endDate = request.getParameter("enddate");
 	  Date edate = null;
+	  if(endDate != null) {
 	  try {
 		 edate = dateFormat.parse(endDate);
 	} catch (ParseException e1) {
 		// TODO Auto-generated catch block
 		e1.printStackTrace();
 	}
-	
-	  
+	  }
+	 
 	 Date actualdate = new Date();
 	 
-	 //if dates are the same
-     if(actualdate.compareTo(sdate) == 0) {
+	 //checks if actual date is between the given interval
+     if(sdate.compareTo(actualdate) * actualdate.compareTo(edate) > 0) {
      
      String button = request.getParameter("button");
    	  
@@ -88,7 +109,18 @@ public class HelloAppEngine extends HttpServlet {
    	  }
    	  
    	  if(button.contentEquals("Import Email")) {
-   		  importEmail();
+   		  
+   	      String email = request.getParameter("emails");
+   		  importEmail(email);
+   	  }
+   	  
+   	  if (button.contentEquals("Send Emails")) {
+   		  if(emails.size() > 0) {
+   			  sendEmail();
+   		  }
+   		  else {
+   			  LOGGER.info("No imported emails.");
+   		  }
    	  }
      
      }
@@ -118,13 +150,46 @@ public class HelloAppEngine extends HttpServlet {
       } 
     }
   }
-      public void importEmail() {
-    	  //Code to import an Email
+      //Each email will be stored in a list
+      public void importEmail(String email) {
+    	  emails.add(email);
+    	  System.out.println(emails);
+      }
+      
+      
+      public void sendEmail() {
+    	  
+    	  Properties props = new Properties();
+    	  Session session = Session.getDefaultInstance(props, null);
+
+
+    	  
+    	  for (int i=0; i<emails.size(); i++) {
+    		  try {
+    			  MimeMessage msg = new MimeMessage(session);
+    			  msg.setFrom(new InternetAddress("admin@example.com", "Example.com Admin"));
+    			  msg.addRecipient(RecipientType.TO,
+    			                   new InternetAddress(emails.get(i), "Mr/Ms. User"));
+    			  msg.setSubject("University Elections");
+    			  msg.setText("This is a test");
+    			  Transport.send(msg);
+    	  }catch (AddressException e) {
+    	        e.printStackTrace();
+    	    } catch (MessagingException e) {
+    	        e.printStackTrace();
+    	    } catch (UnsupportedEncodingException e) {
+    	        e.printStackTrace();
+    	    }
+      }
       }
       
   
       
       
+      
+      
+      
+       
       public static String getInfo() {
     	    return "Version: " + System.getProperty("java.version")
     	          + " OS: " + System.getProperty("os.name")
