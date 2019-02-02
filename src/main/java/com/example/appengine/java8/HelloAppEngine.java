@@ -19,11 +19,9 @@ package com.example.appengine.java8;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -47,10 +45,14 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.mail.MailService.Message;
 
+/**
+ * 
+ * @author Bora Bejleri
+ *
+ */
 
-//Cron service to start and end the elections
+//Servlet to controll all backend functionalities
 @WebServlet(name = "HelloAppEngine", urlPatterns = "/operation")
 
 
@@ -67,38 +69,42 @@ public class HelloAppEngine extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 	
 	
-	  DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
       
 	 
       //Getting start date from user input
 	  String startDate = request.getParameter("startdate");
-	  Date sdate = null;
+	  LocalDateTime sdate = null;
 	  if (startDate != null) {
 	try {
-		sdate = dateFormat.parse(startDate);
-	} catch (ParseException e2) {
-		// TODO Auto-generated catch block
-		e2.printStackTrace();
+		sdate = LocalDateTime.parse(startDate, dtf);
+	} catch (Exception e2) {
+		LOGGER.warning("Empty Starting Date");
 	}
 	}
 	
 	 //Getting end date from user input
 	  String endDate = request.getParameter("enddate");
-	  Date edate = null;
+	  LocalDateTime edate = null;
 	  if(endDate != null) {
 	  try {
-		 edate = dateFormat.parse(endDate);
-	} catch (ParseException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
+		 edate = LocalDateTime.parse(endDate, dtf);
+	} catch (Exception e1) {
+		LOGGER.warning("Empty Ending Date");
 	}
 	  }
 	 
-	 Date actualdate = new Date();
+	 LocalDateTime actualdate = LocalDateTime.now();
+	 
+	 //Check whether it is the day before elections
+	 //If yes send automatically generated Email
+	 if(actualdate == sdate.minusDays(1)) {
+		 sendAutomatedEmail();
+	 }
 	 
 	 //checks if actual date is between the given interval
 	 //if yes, executes the buttons
-     if(sdate.compareTo(actualdate) * actualdate.compareTo(edate) > 0) {
+	 else if(sdate.compareTo(actualdate) * actualdate.compareTo(edate) > 0) {
      
      String button = request.getParameter("button");
    	  
@@ -112,7 +118,7 @@ public class HelloAppEngine extends HttpServlet {
    			addCandidate(fname, lname, faculty);
    		  }
    		  else {
-   			  LOGGER.info("Missing information. Please fill all text fields.");
+   			  LOGGER.warning("Missing information. Please fill all text fields.");
    		  }
    		  
    	  }
@@ -124,7 +130,7 @@ public class HelloAppEngine extends HttpServlet {
    		  importEmail(email);
    	      }
    	      else {
-   	    	  LOGGER.info("Missing information. Add an email to import!");
+   	    	  LOGGER.warning("Missing information. Add an email to import!");
    	      }
    	  }
    	  
@@ -171,7 +177,32 @@ public class HelloAppEngine extends HttpServlet {
     	  System.out.println(emails);
       }
       
+      //Method for sending the reminder Email
+      public void sendAutomatedEmail() {
+    	  Properties props = new Properties();
+    	  Session session = Session.getDefaultInstance(props, null);
+    	  String content = "This Email is to remind you for the University elections starting tomorrow./nWe encourage you to participate by voting for your favourite Candidate./nBest,/nStudent Council";
+    	  
+    	  for (int i=0; i<emails.size();i++) {
+    		  try {
+    			  MimeMessage msg = new MimeMessage(session);
+    			  msg.setFrom(new InternetAddress("bejleribora@gmail.com", "Admin"));
+    			  msg.addRecipient(RecipientType.TO,
+    			                   new InternetAddress(emails.get(i), "Dear Student"));
+    			  msg.setSubject("University Elections Reminder");
+    			  msg.setText(content);
+    			  Transport.send(msg);
+    		  } catch (AddressException e) {
+      	        e.printStackTrace();
+      	    } catch (MessagingException e) {
+      	        e.printStackTrace();
+      	    } catch (UnsupportedEncodingException e) {
+      	        e.printStackTrace();
+      	    }
+    	  }
+      }
       
+      //Method for sending emails representing voting card for the students
       public void sendEmail() {
     	  Properties props = new Properties();
     	  Session session = Session.getDefaultInstance(props, null);
@@ -218,19 +249,6 @@ public class HelloAppEngine extends HttpServlet {
       }
       }
       
-  
       
-      
-      
-      
-      
-      
-      
-       
-      public static String getInfo() {
-    	    return "Version: " + System.getProperty("java.version")
-    	          + " OS: " + System.getProperty("os.name")
-    	          + " User: " + System.getProperty("user.name");
-    	  }
 
 }
