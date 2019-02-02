@@ -21,6 +21,7 @@ body {
 <h4>Here you can define the start and end interval of elections.</h4>
 <tr><td>Starting date: <input type="datetime-local" name="startdate"></td></tr><br>
 <tr><td>Ending date: <input type="datetime-local" name="enddate"></td></tr>
+<tr><td><a href='/operation'><input type="button" name="button" value="Set Date"></a></td></tr>
 <tr><td><h4>Add candidates:</h4></td></tr>
 <tr><td>First Name: <input type="text" name="firstname" placeholder="First name..."></td></tr>
 <tr><td>Last Name: <input type="text" name="lastname" placeholder="Last name..."></td></tr>

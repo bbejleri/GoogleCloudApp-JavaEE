@@ -17,6 +17,7 @@
 package com.example.appengine.java8;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -36,6 +37,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -68,8 +71,8 @@ public class HelloAppEngine extends HttpServlet {
 @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 	
-	
-	 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+	 String button = request.getParameter("button");
+	 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
       
 	 
       //Getting start date from user input
@@ -96,17 +99,34 @@ public class HelloAppEngine extends HttpServlet {
 	 
 	 LocalDateTime actualdate = LocalDateTime.now();
 	 
-	 //Check whether it is the day before elections
-	 //If yes send automatically generated Email
-	 if(actualdate == sdate.minusDays(1)) {
-		 sendAutomatedEmail();
-	 }
+
+	//Fixing null exceptions
+	if(sdate != null && actualdate != null && edate != null) {
+		 
+	     if(button.equals("Set Date")) {
+			 response.setContentType("text/html");
+			 PrintWriter out = response.getWriter();
+			 out.print("Election Interval set: " + sdate + "-" + edate);
+			 RequestDispatcher rs = request.getRequestDispatcher("/backend.jsp");
+			 try {
+				rs.forward(request, response);
+			} catch (ServletException e) {
+				e.printStackTrace();
+			}
+		 }
+		 
+		//Check whether it is the day before elections
+		 //If yes send automatically generated Email
+		 if(actualdate == sdate.minusDays(1)) {
+			 sendAutomatedEmail();
+		 }
+		 
+	 
 	 
 	 //checks if actual date is between the given interval
-	 //if yes, executes the buttons
+	 //if yes, backend functionalities are executable
 	 else if(sdate.compareTo(actualdate) * actualdate.compareTo(edate) > 0) {
      
-     String button = request.getParameter("button");
    	  
    	  
    	  if (button.equals("Add Candidate")) {
@@ -115,7 +135,13 @@ public class HelloAppEngine extends HttpServlet {
    		  String faculty = request.getParameter("faculty");
    		  
    		  if(fname != null && lname != null && faculty != null) {
+   			  try {
    			addCandidate(fname, lname, faculty);
+   			RequestDispatcher rs = request.getRequestDispatcher("/success.jsp");
+   			rs.forward(request, response);
+   			  }catch(Exception e) {
+   				  LOGGER.info("Some Error occured");
+   			  }
    		  }
    		  else {
    			  LOGGER.warning("Missing information. Please fill all text fields.");
@@ -150,6 +176,7 @@ public class HelloAppEngine extends HttpServlet {
      }
 	  	        
   }
+}
 
    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
    Transaction txn = datastore.beginTransaction();
