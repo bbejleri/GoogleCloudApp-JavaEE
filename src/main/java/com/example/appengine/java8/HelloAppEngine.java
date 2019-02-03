@@ -179,10 +179,10 @@ public class HelloAppEngine extends HttpServlet {
 	  	        
   }
 }
-   
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
    public void createCandidateEntity(String firstname, String lastname, String faculty) {
 	   
-	   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+	   
 	   Transaction txn = datastore.beginTransaction();
 	   String candidateKey = "candidate-key";
 	   try {
