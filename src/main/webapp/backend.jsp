@@ -16,7 +16,7 @@ body {
 <body>
 <h1>This is the Backend Interface</h1>
 <hr>
-<form method="POST">
+<form method="GET">
 <table border="0">
 <h4>Here you can define the start and end interval of elections.</h4>
 <tr><td>Starting date: <input type="datetime-local" name="startdate"></td></tr><br>

@@ -47,6 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -100,7 +102,7 @@ public class HelloAppEngine extends HttpServlet {
 	 LocalDateTime actualdate = LocalDateTime.now();
 	 
 
-	//Fixing null exceptions
+	//Fixing null pointer exceptions
 	if(sdate != null && actualdate != null && edate != null) {
 		 
 	     if(button.equals("Set Date")) {
@@ -136,7 +138,7 @@ public class HelloAppEngine extends HttpServlet {
    		  
    		  if(fname != null && lname != null && faculty != null) {
    			  try {
-   			addCandidate(fname, lname, faculty);
+   			createCandidateEntity(fname, lname, faculty);
    			RequestDispatcher rs = request.getRequestDispatcher("/success.jsp");
    			rs.forward(request, response);
    			  }catch(Exception e) {
@@ -177,26 +179,32 @@ public class HelloAppEngine extends HttpServlet {
 	  	        
   }
 }
-
-   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-   Transaction txn = datastore.beginTransaction();
    
-      public void addCandidate(String firstname, String lastname, String faculty) {
-    	  try {
-    	 Entity candidate = new Entity("Candidate");
-    	 candidate.setProperty("firstname", firstname);
-    	 candidate.setProperty("lastname", lastname);
-    	 candidate.setProperty("faculty", faculty);
-    	 datastore.put(txn, candidate);
-         txn.commit();
-         LOGGER.info("Uploaded Successfully!");
-      }
-      finally {if (txn.isActive()) {
-    	    txn.rollback();
-    	    LOGGER.warning("An error occured while uploading candidate.");
-      } 
-    }
-  }
+   public void createCandidateEntity(String firstname, String lastname, String faculty) {
+	   
+	   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+	   Transaction txn = datastore.beginTransaction();
+	   String candidateKey = "candidate-key";
+	   try {
+		   Key key = KeyFactory.createKey("CandidateKey", candidateKey);
+
+	    	 Entity candidate = new Entity("Candidate", key);
+	    	 candidate.setProperty("firstname", firstname);
+	    	 candidate.setProperty("lastname", lastname);
+	    	 candidate.setProperty("faculty", faculty);
+	    	 datastore.put(txn, candidate);	 
+	         txn.commit();
+	         LOGGER.info("Uploaded Successfully!");
+	      }
+	      finally {if (txn.isActive()) {
+	    	    txn.rollback();
+	    	    LOGGER.warning("An error occured while uploading candidate.");
+	      } 
+	   
+   }
+	   
+   }
+   
       
       //Each email will be stored in a list
       public void importEmail(String email) {

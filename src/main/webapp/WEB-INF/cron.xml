@@ -3,7 +3,7 @@
 <cronentries>
   <cron>
     <url>/operation</url>
-    <description>Check every 5 minutes for to access the backend servlet i.e HelloAppEngine</description>
+    <description>Check every 5 minutes to access the backend servlet to send the auto generated emails</description>
     <schedule>every 5 minutes</schedule>
   </cron>
  </cronentries>
